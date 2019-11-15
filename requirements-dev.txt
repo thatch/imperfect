@@ -1,0 +1,8 @@
+hypothesis>=4.44
+coverage
+isort
+black
+parameterized
+tox
+wheel
+twine

@@ -12,7 +12,5 @@ def parse_version():
 setup(
     version=parse_version(),
     python_requires=">=3.6",
-    install_requires=[
-        "dataclasses >= 0.7; python_version < '3.7'",
-    ],
+    install_requires=["dataclasses >= 0.7; python_version < '3.7'",],
 )

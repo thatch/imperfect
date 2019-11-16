@@ -17,12 +17,17 @@ setup:
 test:
 	which python
 	python -m coverage run -m imperfect.tests $(TESTOPTS)
-	python -m coverage report --fail-under=75 --omit='.venv/*,.tox/*' --show-missing
+	python -m coverage report --fail-under=90 --omit='.venv/*,.tox/*' --show-missing
+
+.PHONY: fuzz
+fuzz:
+	python -m unittest imperfect.tests.imperfect_hypothesis
 
 .PHONY: lint
 lint:
 	isort --recursive -y imperfect setup.py
 	black imperfect setup.py
+	flake8 imperfect
 
 .PHONY: release
 release:

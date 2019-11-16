@@ -4,7 +4,7 @@ from configparser import RawConfigParser
 from typing import List, Union
 
 import hypothesis.strategies as st
-from hypothesis import HealthCheck, Phase, Verbosity, example, given, settings
+from hypothesis import HealthCheck, example, given, settings
 
 import imperfect
 
@@ -77,6 +77,7 @@ def configparser_is_ok_with_it(**kwargs):
             return True
         except Exception:
             return False
+
     return inner
 
 

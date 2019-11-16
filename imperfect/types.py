@@ -1,9 +1,13 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import List
+
+
+class ParseError(Exception):
+    pass
+
 
 @dataclass
 class ConfigFile:
-    default: Optional["DefaultConfigSection"] = None
     sections: List["ConfigSection"] = field(default_factory=list)
     # The naming of these comes from configobj
     initial_comment: str = ""
@@ -27,8 +31,6 @@ class ConfigFile:
 
     def build(self, buf) -> None:
         buf.write(self.initial_comment)
-        if self.default:
-            self.default.build(buf)
         for s in self.sections:
             s.build(buf)
         buf.write(self.final_comment)
@@ -71,16 +73,6 @@ class ConfigSection:
             return True
         except KeyError:
             return False
-
-
-@dataclass
-class DefaultConfigSection:
-    # All leading whitespace just belongs to the first entry
-    entries: List["ConfigEntry"] = field(default_factory=list)
-
-    def build(self, buf) -> None:
-        for e in self.entries:
-            e.build(buf)
 
 
 @dataclass
@@ -129,5 +121,3 @@ class ValueLine:
             + self.whitespace_after_text
             + self.newline
         )
-
-

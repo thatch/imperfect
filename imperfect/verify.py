@@ -1,7 +1,9 @@
+import configparser
 import io
 import sys
-import configparser
+
 from imperfect import parse_string
+
 
 def verify(name):
     with open(name) as f:
@@ -17,7 +19,7 @@ def verify(name):
         co = configparser.RawConfigParser()
         co.read_string(data)
     except Exception as e:
-        print(name, "FAIL TO READ IN CONFIGPARSER")
+        print(name, "FAIL TO READ IN CONFIGPARSER", e)
         return
     compares = 0
     for section_name in co:
@@ -44,4 +46,3 @@ def verify(name):
 if __name__ == "__main__":  # pragma: no cover
     for f in sys.argv[1:]:
         verify(f)
-

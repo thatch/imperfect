@@ -10,17 +10,14 @@ import imperfect
 
 SAMPLES = [
     "[s]\nb=1",
+    "[s]\nb=1\nc=2",
     "[s]\nb=1\n\n",
-    "a=1",
-    "a=1\n",
 ]
 
 # This is for future adaptation to hypothesis, perhaps
 def variations(section: Optional[str], k: str, v: str) -> List[str]:
-    if section:
-        section_strs = [f"\n\n[{section}]\n", f"[{section}]\n"]
-    else:
-        section_strs = [""]
+    assert section
+    section_strs = [f"\n\n[{section}]\n", f"[{section}]\n"]
     return [
         "".join(c)
         for c in itertools.product(
@@ -38,17 +35,59 @@ def variations(section: Optional[str], k: str, v: str) -> List[str]:
 
 
 class ImperfectTests(unittest.TestCase):
+    # The goal is to get to 100% test coverage with these, but then also have
+    # the hypothesis-based tests that validate behavior on many invented
+    # examples.
+    @parameterized.expand(
+        [("[s]\na=1",), ("[s]\na = 1",), ("[s]\na = 1\n",), ("[s]\na=\n  1",),],
+    )
+    def test_simple_parse(self, example):
+        conf = imperfect.parse_string(example)
+        # Minimal mapping api
+        self.assertEqual(["s"], conf.keys())
+        self.assertTrue("s" in conf)
+        self.assertEqual(["a"], conf["s"].keys())
+        self.assertTrue("a" in conf["s"])
+
+        # KeyError coverage
+        self.assertFalse("b" in conf)
+        self.assertFalse("b" in conf["s"])
+
+        self.assertIn(conf["s"]["a"], ("1", "\n1"))
+
+    @parameterized.expand([("a=1",),],)
+    def test_fail_to_parse(self, example):
+        with self.assertRaises(imperfect.ParseError):
+            imperfect.parse_string(example)
+
+    def test_allow_no_value(self):
+        conf = imperfect.parse_string("[s]\na=", allow_no_value=True)
+        self.assertEqual("", conf["s"]["a"])
+
+    def test_alternate_delimiters(self):
+        conf = imperfect.parse_string("[s]\naqq1", delimiters=("qq",))
+        self.assertEqual("1", conf["s"]["a"])
+
+    def test_alternate_delimiters_allow_no_value(self):
+        conf = imperfect.parse_string(
+            "[s]\naqq", delimiters=("qq",), allow_no_value=True
+        )
+        self.assertEqual("", conf["s"]["a"])
+
+    def test_comment_prefixes(self):
+        conf = imperfect.parse_string("[s]\n@comment\na=1", comment_prefixes=("@",))
+        self.assertEqual("1", conf["s"]["a"])
+
     @parameterized.expand(
         [
-            ("a=1",),
             ("[ ]=",),
             (" [0]",),
             ("[s]\na=1",),
             ("[s]\n[s2]\na=1",),
-            ("  a = 1  \n\n",),
+            ("[s]\n  a = 1  \n\n",),
             ("#comment\n[s]\na=1\n#comment2",),
         ],
-        testcase_func_name=(lambda a, b, c: f"{a.__name__}_{b}"),
+        name_func=(lambda a, b, c: f"{a.__name__}_{b}"),
     )
     def test_simple_roundtrips(self, example):
         conf = imperfect.parse_string(example)
@@ -62,7 +101,7 @@ class ImperfectTests(unittest.TestCase):
             try:
                 oracle.read_string(example)
                 self.assertEqual(oracle["sect"]["a"], "1")
-            except Exception:
+            except Exception:  # pragma: no cover
                 continue
 
             conf = None
@@ -72,9 +111,7 @@ class ImperfectTests(unittest.TestCase):
                 self.assertEqual(len(conf["sect"].entries), 1)
                 self.assertEqual(conf["sect"].entries[0].key, "a")
                 self.assertEqual(conf["sect"].entries[0].interpret_value(), "1")
-            except imperfect.TrailingWhitespace:
-                continue
-            except Exception:
+            except Exception:  # pragma: no cover
                 print("Input: ", repr(example))
                 if conf:
                     if conf.default:
@@ -148,11 +185,11 @@ packages = imperfect
         buf = io.StringIO()
         conf.build(buf)
 
-        print(
-            "".join(
-                difflib.unified_diff(
-                    data.splitlines(True), buf.getvalue().splitlines(True),
-                )
+        self.assertEqual(EXPECTED, buf.getvalue())
+
+        temp = "".join(
+            difflib.unified_diff(
+                data.splitlines(True), buf.getvalue().splitlines(True),
             )
         )
-        self.assertEqual(EXPECTED, buf.getvalue())
+        self.assertTrue(temp)

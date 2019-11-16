@@ -5,15 +5,20 @@ This is not designed for quick access, it's designed for being able to roundtrip
 and splice between files.
 """
 
-import configparser
-import io
 import re
-import sys
-#from dataclasses import dataclass, field
-#from typing import List, Optional, Tuple
+from typing import Tuple
 
-from .types import *
+from .types import ConfigEntry, ConfigFile, ConfigSection, ParseError, ValueLine
 
+__all__ = [
+    "ConfigFile",
+    "ConfigSection",
+    "ConfigEntry",
+    "ValueLine",
+    "Parser",
+    "ParseError",
+    "parse_string",
+]
 
 LEADING_WHITESPACE = re.compile(
     r"^([ \t\r\x1f\x1e\x1d\x1c\x0c\x0b]*)(.*?)([ \t]*)(\r?\n)?$"
@@ -21,7 +26,6 @@ LEADING_WHITESPACE = re.compile(
 # These do not need to handle leading or trailing whitespace, that's handled
 # above.
 SECTION = re.compile(r"^(\[)([^\]]+)(\])(.*)")
-ENTRY = re.compile(r"(.*?)(\s*)([=:])(\s*)(.*)")
 
 
 def split_prefix(line: str) -> Tuple[str, str, str, str]:
@@ -50,7 +54,7 @@ class Parser:
         """
     _OPT_TMPL = r"""
         (?P<option>.*?)                    # very permissive!
-        \s*(?P<vi>{delim})\s*              # any number of space/tab,
+        (?P<ws1>\s*)(?P<vi>{delim})(?P<ws2>\s*)              # any number of space/tab,
                                            # followed by any of the
                                            # allowed delimiters,
                                            # followed by any space/tab
@@ -58,8 +62,8 @@ class Parser:
         """
     _OPT_NV_TMPL = r"""
         (?P<option>.*?)                    # very permissive!
-        \s*(?:                             # any number of space/tab,
-        (?P<vi>{delim})\s*                 # optionally followed by
+        (?P<ws1>\s*)(?:                             # any number of space/tab,
+        (?P<vi>{delim})(?P<ws2>\s*)                 # optionally followed by
                                            # any of the allowed
                                            # delimiters, followed by any
                                            # space/tab
@@ -130,9 +134,12 @@ class Parser:
                                 newline=char,
                             )
                             entry.value.append(value)
-                if parts[2].startswith(("#", ";")) and not parts[1]:
+                if parts[1].startswith(self._comment_prefixes):
                     parts = list(parts)
-                    # This is a comment line
+                    # This is a comment line, put comment in whitespace
+                    parts[0] += parts[1]
+                    parts[1] = ""
+                    # This is a comment line, pull newline out
                     parts[2] += parts[3]
                     parts[3] = ""
                 value = ValueLine(
@@ -166,26 +173,26 @@ class Parser:
                 entry_indent = None
                 continue
 
-            m = ENTRY.match(parts[1])
+            m = self._optcre.match(parts[1])
             if m:
+                d = m.groupdict()
                 entry = ConfigEntry(
                     whitespace_before_key=wsbuf,
-                    key=m.group(1),
-                    whitespace_before_equals=m.group(2),
-                    equals=m.group(3),
-                    whitespace_before_value=m.group(4),
+                    key=d["option"],
+                    whitespace_before_equals=d["ws1"],
+                    equals=d["vi"],
+                    whitespace_before_value=d["ws2"] or "",
                     whitespace_after_value="",
                 )
                 value = ValueLine(
                     whitespace_before_text="",
-                    text=m.group(5),
+                    text=d["value"],
                     whitespace_after_text=parts[2],
                     newline=parts[3],
                 )
                 entry.value.append(value)
                 if sect is None:
-                    sect = DefaultConfigSection()
-                    root.default = sect
+                    raise ParseError("Entry outside a section")
                 sect.entries.append(entry)
                 entry_indent = len(parts[0])
                 wsbuf = ""

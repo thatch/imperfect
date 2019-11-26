@@ -6,7 +6,7 @@ and splice between files.
 """
 
 import re
-from typing import Tuple
+from typing import Any, Optional, Sequence, Tuple
 
 from .types import ConfigEntry, ConfigFile, ConfigSection, ParseError, ValueLine
 
@@ -33,6 +33,7 @@ def split_prefix(line: str) -> Tuple[str, str, str, str]:
     Given '  a  \n' gives ('  ', 'a', '  ', '\n')
     """
     m = LEADING_WHITESPACE.match(line)
+    assert m is not None
     return m.group(1), m.group(2), m.group(3), m.group(4) or ""
 
 
@@ -82,11 +83,11 @@ class Parser:
 
     def __init__(
         self,
-        allow_no_value=False,
-        delimiters=("=", ":"),
-        comment_prefixes=("#", ";"),
-        inline_comment_prefixes=None,
-        empty_lines_in_values=True,
+        allow_no_value: bool = False,
+        delimiters: Sequence[str] = ("=", ":"),
+        comment_prefixes: Sequence[str] = ("#", ";"),
+        inline_comment_prefixes: Optional[Sequence[str]] = None,
+        empty_lines_in_values: bool = True,
     ) -> None:
         self._delimeters = tuple(delimiters)
         if delimiters == ("=", ":"):
@@ -102,7 +103,7 @@ class Parser:
         self._allow_no_value = allow_no_value
         self._empty_lines_in_values = empty_lines_in_values
 
-    def parse_string(self, text) -> ConfigFile:
+    def parse_string(self, text: str) -> ConfigFile:
 
         # Note that default_section param isn't included; it doesn't have a name in
         # this tree so it doesn't matter.
@@ -207,5 +208,5 @@ class Parser:
         return root
 
 
-def parse_string(text, **kwargs) -> ConfigFile:
+def parse_string(text: str, **kwargs: Any) -> ConfigFile:
     return Parser(**kwargs).parse_string(text)

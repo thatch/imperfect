@@ -1,7 +1,7 @@
 import string
 import unittest
 from configparser import RawConfigParser
-from typing import List, Union
+from typing import Any, Callable, List, Union
 
 import hypothesis.strategies as st
 from hypothesis import HealthCheck, example, given, settings
@@ -15,7 +15,7 @@ chars = st.characters()
 
 
 @st.composite
-def simple_well_formed_ini(draw):
+def simple_well_formed_ini(draw: Callable[[Any], str]) -> str:
     section_name = draw(st.text())
     item_name = draw(st.text())
     item_value = draw(st.text())
@@ -30,7 +30,7 @@ def simple_well_formed_ini(draw):
 
 
 @st.composite
-def ini_section(draw):
+def ini_section(draw: Callable[[Any], str]) -> str:
     section_name = draw(st.text(alphabet=chars))
     template = "x[x{section_name}x]x"
     while True:
@@ -44,7 +44,7 @@ def ini_section(draw):
 
 
 @st.composite
-def ini_value(draw):
+def ini_value(draw: Callable[[Any], str]) -> str:
     a = draw(st.text(alphabet=chars))
     b = draw(st.text(alphabet=chars))
     c = draw(st.text(alphabet=chars))
@@ -61,13 +61,13 @@ def ini_value(draw):
 
 
 @st.composite
-def continued_value(draw):
+def continued_value(draw: Callable[[Any], str]) -> str:
     whitespace = draw(st.text(alphabet=string.whitespace))
     value = draw(st.text())
     return whitespace + value
 
 
-def configparser_is_ok_with_it(**kwargs):
+def configparser_is_ok_with_it(**kwargs: Any) -> Callable[..., bool]:
     def inner(text: Union[List[str], str]) -> bool:
         if isinstance(text, list):
             text = "\n".join(text)
@@ -84,8 +84,8 @@ def configparser_is_ok_with_it(**kwargs):
 class ImperfectHypothesisTest(unittest.TestCase):
     @given(simple_well_formed_ini().filter(configparser_is_ok_with_it()))
     @example("[a]\nb=1")
-    @settings(max_examples=1000, deadline=10)
-    def atest_parse(self, text):
+    @settings(max_examples=1000, deadline=10)  # type: ignore
+    def atest_parse(self, text: str) -> None:
         print("Validating", repr(text))
         rcp = RawConfigParser(strict=True)
         rcp.read_string(text)
@@ -94,7 +94,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
 
         for section in rcp:
             if section != "DEFAULT":
-                self.assertIn(section, conf)
+                self.assertIn(section, conf)  # type: ignore
                 self.assertEqual(
                     conf[section].keys(), list(rcp[section].keys()),
                 )
@@ -104,7 +104,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
             configparser_is_ok_with_it()
         )
     )
-    @settings(
+    @settings(  # type: ignore
         suppress_health_check=[HealthCheck.too_slow], max_examples=200, deadline=3000
     )
     @example(["[\r]", " 0=1"])
@@ -114,7 +114,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
     @example(["[ ]", "0=", "  []", " ="])
     @example(["[ ]", "0=", "  =", " ="])
     @example(["[ ]", "0=", "[0]", " [\r]"])
-    def test_parse(self, lines):
+    def test_parse(self, lines: List[str]) -> None:
         text = "\n".join(lines)
         rcp = RawConfigParser(strict=True)
         rcp.read_string(text)
@@ -125,7 +125,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
 
         for section in rcp:
             if section != "DEFAULT":
-                self.assertIn(section, conf)
+                self.assertIn(section, conf)  # type: ignore
                 self.assertEqual(
                     conf[section].keys(), list(rcp[section].keys()),
                 )

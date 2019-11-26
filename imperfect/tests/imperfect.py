@@ -38,10 +38,10 @@ class ImperfectTests(unittest.TestCase):
     # The goal is to get to 100% test coverage with these, but then also have
     # the hypothesis-based tests that validate behavior on many invented
     # examples.
-    @parameterized.expand(
+    @parameterized.expand(  # type: ignore
         [("[s]\na=1",), ("[s]\na = 1",), ("[s]\na = 1\n",), ("[s]\na=\n  1",),],
     )
-    def test_simple_parse(self, example):
+    def test_simple_parse(self, example: str) -> None:
         conf = imperfect.parse_string(example)
         # Minimal mapping api
         self.assertEqual(["s"], conf.keys())
@@ -55,30 +55,30 @@ class ImperfectTests(unittest.TestCase):
 
         self.assertIn(conf["s"]["a"], ("1", "\n1"))
 
-    @parameterized.expand([("a=1",),],)
-    def test_fail_to_parse(self, example):
+    @parameterized.expand([("a=1",),],)  # type: ignore
+    def test_fail_to_parse(self, example: str) -> None:
         with self.assertRaises(imperfect.ParseError):
             imperfect.parse_string(example)
 
-    def test_allow_no_value(self):
+    def test_allow_no_value(self) -> None:
         conf = imperfect.parse_string("[s]\na=", allow_no_value=True)
         self.assertEqual("", conf["s"]["a"])
 
-    def test_alternate_delimiters(self):
+    def test_alternate_delimiters(self) -> None:
         conf = imperfect.parse_string("[s]\naqq1", delimiters=("qq",))
         self.assertEqual("1", conf["s"]["a"])
 
-    def test_alternate_delimiters_allow_no_value(self):
+    def test_alternate_delimiters_allow_no_value(self) -> None:
         conf = imperfect.parse_string(
             "[s]\naqq", delimiters=("qq",), allow_no_value=True
         )
         self.assertEqual("", conf["s"]["a"])
 
-    def test_comment_prefixes(self):
+    def test_comment_prefixes(self) -> None:
         conf = imperfect.parse_string("[s]\n@comment\na=1", comment_prefixes=("@",))
         self.assertEqual("1", conf["s"]["a"])
 
-    @parameterized.expand(
+    @parameterized.expand(  # type: ignore
         [
             ("[ ]=",),
             (" [0]",),
@@ -89,13 +89,13 @@ class ImperfectTests(unittest.TestCase):
         ],
         name_func=(lambda a, b, c: f"{a.__name__}_{b}"),
     )
-    def test_simple_roundtrips(self, example):
+    def test_simple_roundtrips(self, example: str) -> None:
         conf = imperfect.parse_string(example)
         buf = io.StringIO()
         conf.build(buf)
         self.assertEqual(buf.getvalue(), example)
 
-    def test_exhaustive_roundtrip(self):
+    def test_exhaustive_roundtrip(self) -> None:
         for example in variations("sect", "a", "1"):
             oracle = configparser.RawConfigParser()
             try:
@@ -114,10 +114,10 @@ class ImperfectTests(unittest.TestCase):
             except Exception:  # pragma: no cover
                 print("Input: ", repr(example))
                 if conf:
-                    if conf.default:
-                        print("default:")
-                        for v in conf.default.entries:
-                            print("  ", v)
+                    # if conf.default:
+                    #     print("default:")
+                    #     for v in conf.default.entries:
+                    #         print("  ", v)
                     for s in conf.sections:
                         print(f"{s.name}:")
                         for v in s.entries:
@@ -128,7 +128,7 @@ class ImperfectTests(unittest.TestCase):
             conf.build(buf)
             self.assertEqual(buf.getvalue(), example)
 
-    def test_example_from_readme(self):
+    def test_example_from_readme(self) -> None:
         INPUT = """
 [metadata]
 # the package name

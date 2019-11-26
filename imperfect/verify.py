@@ -5,7 +5,7 @@ import sys
 from imperfect import parse_string
 
 
-def verify(name):
+def verify(name: str) -> None:
     with open(name) as f:
         data = f.read()
     conf = parse_string(data)

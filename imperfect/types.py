@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, List
 
 
 class ParseError(Exception):
@@ -13,23 +13,24 @@ class ConfigFile:
     initial_comment: str = ""
     final_comment: str = ""
 
-    def keys(self):
+    def keys(self) -> List[str]:
         return [s.name for s in self.sections]
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> "ConfigSection":
         for s in self.sections:
             if s.name == name:
                 return s
         raise KeyError(f"Missing section {name}")
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
         try:
             self[name]
             return True
         except KeyError:
             return False
 
-    def build(self, buf) -> None:
+    # TODO file-like type
+    def build(self, buf: Any) -> None:
         buf.write(self.initial_comment)
         for s in self.sections:
             s.build(buf)
@@ -46,7 +47,8 @@ class ConfigSection:
     newline: str
     entries: List["ConfigEntry"] = field(default_factory=list)
 
-    def build(self, buf) -> None:
+    # TODO file-like type
+    def build(self, buf: Any) -> None:
         buf.write(
             self.leading_whitespace
             + self.leading_square_bracket
@@ -58,16 +60,16 @@ class ConfigSection:
         for e in self.entries:
             e.build(buf)
 
-    def keys(self):
+    def keys(self) -> List[str]:
         return [e.key.lower() for e in self.entries]
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> str:
         for e in self.entries:
             if e.key.lower() == name.lower():
                 return e.interpret_value()
         raise KeyError(name)
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
         try:
             self[name]
             return True
@@ -86,7 +88,7 @@ class ConfigEntry:
     whitespace_before_value: str = ""
     whitespace_after_value: str = ""  # The final (though optional) newline
 
-    def interpret_value(self):
+    def interpret_value(self) -> str:
         return "".join(
             [
                 v.text + (v.newline if i < (len(self.value) - 1) else "")
@@ -94,7 +96,8 @@ class ConfigEntry:
             ]
         )
 
-    def build(self, buf) -> None:
+    # TODO
+    def build(self, buf: Any) -> None:
         buf.write(
             self.whitespace_before_key
             + self.key
@@ -114,7 +117,8 @@ class ValueLine:
     whitespace_after_text: str
     newline: str
 
-    def build(self, buf) -> None:
+    # TODO
+    def build(self, buf: Any) -> None:
         buf.write(
             self.whitespace_before_text
             + self.text

@@ -60,6 +60,10 @@ class ImperfectTests(unittest.TestCase):
         with self.assertRaises(imperfect.ParseError):
             imperfect.parse_string(example)
 
+    def test_multiline_with_comment(self) -> None:
+        conf = imperfect.parse_string("[s]\na=\n #comment\n b\n")
+        self.assertEqual("\nb", conf["s"]["a"])
+
     def test_allow_no_value(self) -> None:
         conf = imperfect.parse_string("[s]\na=", allow_no_value=True)
         self.assertEqual("", conf["s"]["a"])

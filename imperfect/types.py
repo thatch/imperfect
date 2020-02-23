@@ -36,6 +36,21 @@ class ConfigFile:
             s.build(buf)
         buf.write(self.final_comment)
 
+    def set_value(self, section: str, key: str, value: str) -> None:
+        try:
+            s = self[section]
+        except KeyError:
+            s = ConfigSection(
+                leading_square_bracket="[",
+                name=section,
+                trailing_square_bracket="]",
+                newline="\n",
+                leading_whitespace="",
+                trailing_whitespace="",
+            )
+            self.sections.append(s)
+        s.set_value(key, value)
+
 
 @dataclass
 class ConfigSection:
@@ -75,6 +90,28 @@ class ConfigSection:
             return True
         except KeyError:
             return False
+
+    def set_value(self, key: str, value: str) -> None:
+        new_valueline = ValueLine(
+            text=value,
+            newline="\n",
+            whitespace_before_text="",
+            whitespace_after_text="",
+        )
+        for e in self.entries:
+            if e.key.lower() == key:
+                e.value = [new_valueline]
+                break
+        else:
+            self.entries.append(
+                ConfigEntry(
+                    key=key,
+                    equals="=",
+                    value=[new_valueline],
+                    whitespace_before_equals=" ",
+                    whitespace_before_value=" ",
+                )
+            )
 
 
 @dataclass

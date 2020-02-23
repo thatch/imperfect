@@ -11,7 +11,7 @@ comments.
 
 Let's say you have the following in `setup.cfg`:
 
-```
+```ini
 [metadata]
 # the package name
 name = imperfect
@@ -22,13 +22,31 @@ long_description = file: README.md
 packages = imperfect
 ```
 
-and you'd like to make an edit adding `long_description_content_type` right
-after `long_description`.
+and you'd like to make an edit setting `long_description_content_type` in
+`[metadata]` but don't care where it goes.  Default is at the end.
 
-```
+```py
 import difflib
-import io
 import imperfect
+import io
+with open("setup.cfg") as f:
+    data = f.read()
+
+conf: imperfect.ConfigFile = imperfect.parse_string(data)
+conf.set_value("metadata", "long_description_content_type", "text/markdown")
+
+buf = io.StringIO()
+conf.build(buf)
+print(buf.getvalue())
+```
+
+What if you want to have control over the odering, and want it right after
+`long_description`?  Now with diffing and more internals...
+
+```py
+import difflib
+import imperfect
+import io
 with open("setup.cfg") as f:
     data = f.read()
 
@@ -80,7 +98,7 @@ Following the convention used by configobj, whitespace generally is accumulated
 and stored on the node that follows it.  This does reasonably well for adding
 entries, but can have unexpected consequences when removing them.  For example,
 
-```
+```ini
 [section1]
 # this belongs to k1
 k1 = foo

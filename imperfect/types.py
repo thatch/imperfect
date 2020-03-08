@@ -92,22 +92,26 @@ class ConfigSection:
             return False
 
     def set_value(self, key: str, value: str) -> None:
-        new_valueline = ValueLine(
-            text=value,
-            newline="\n",
-            whitespace_before_text="",
-            whitespace_after_text="",
-        )
+        valuelines = [
+            ValueLine(
+                text=line,
+                newline="\n",
+                whitespace_before_text="  " if i > 0 else "",
+                whitespace_after_text="",
+            )
+            for i, line in enumerate(value.splitlines(False))
+        ]
+
         for e in self.entries:
             if e.key.lower() == key:
-                e.value = [new_valueline]
+                e.value = valuelines
                 break
         else:
             self.entries.append(
                 ConfigEntry(
                     key=key,
                     equals="=",
-                    value=[new_valueline],
+                    value=valuelines,
                     whitespace_before_equals=" ",
                     whitespace_before_value=" ",
                 )

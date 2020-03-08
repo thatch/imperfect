@@ -33,3 +33,17 @@ class EditingTest(unittest.TestCase):
         buf = io.StringIO()
         conf.build(buf)
         self.assertEqual("[a]\nb = 1\n", buf.getvalue())
+
+    def test_multiline_value(self) -> None:
+        conf = parse_string("")
+        conf.set_value("a", "b", "1\n2")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb = 1\n  2\n", buf.getvalue())
+
+    def test_multiline_value_hanging(self) -> None:
+        conf = parse_string("")
+        conf.set_value("a", "b", "\n1\n2")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb = \n  1\n  2\n", buf.getvalue())

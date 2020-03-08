@@ -45,7 +45,7 @@ class ConfigFile:
                 name=section,
                 trailing_square_bracket="]",
                 newline="\n",
-                leading_whitespace="",
+                leading_whitespace="\n" if len(self.sections) else "",
                 trailing_whitespace="",
             )
             self.sections.append(s)

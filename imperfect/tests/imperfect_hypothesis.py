@@ -6,7 +6,7 @@ from typing import Any, Callable, List, Union
 import hypothesis.strategies as st
 from hypothesis import HealthCheck, example, given, settings
 
-import imperfect
+from .. import parse_string
 
 whitespace = (" ", "\t", "\n", "\r")
 line_noise = ("#", ";", "=", ":")
@@ -90,7 +90,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
         rcp = RawConfigParser(strict=True)
         rcp.read_string(text)
 
-        conf = imperfect.parse_string(text)
+        conf = parse_string(text)
 
         for section in rcp:
             if section != "DEFAULT":
@@ -121,7 +121,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
         print("Validating", repr(text))
         print("  ", {k: dict(rcp[k]) for k in rcp if k != "DEFAULT"})
 
-        conf = imperfect.parse_string(text)
+        conf = parse_string(text)
 
         for section in rcp:
             if section != "DEFAULT":
@@ -146,7 +146,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
     #     print("Validating", repr(text))
     #     print("  ", {k: dict(rcp[k]) for k in rcp if k != "DEFAULT"})
 
-    #     conf = imperfect.parse_string(text, empty_lines_in_values=False)
+    #     conf = parse_string(text, empty_lines_in_values=False)
 
     #     for section in rcp:
     #         if section != "DEFAULT":

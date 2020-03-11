@@ -99,12 +99,24 @@ class ConfigSection:
                 whitespace_before_text="  " if i > 0 else "",
                 whitespace_after_text="",
             )
-            for i, line in enumerate(value.splitlines(False))
+            for i, line in enumerate(value.splitlines(False) or [""])
         ]
 
         for e in self.entries:
             if e.key.lower() == key:
+                had_value = e.value and bool(e.value[0].text)
+
                 e.value = valuelines
+                if e.whitespace_before_value and not valuelines[0].text:
+                    # Now has a trailing space, remove
+                    e.whitespace_before_value = ""
+                elif (
+                    not e.whitespace_before_value
+                    and not had_value
+                    and valuelines[0].text
+                ):
+                    # Add it back
+                    e.whitespace_before_value = " "
                 break
         else:
             self.entries.append(
@@ -113,7 +125,7 @@ class ConfigSection:
                     equals="=",
                     value=valuelines,
                     whitespace_before_equals=" ",
-                    whitespace_before_value=" ",
+                    whitespace_before_value=" " if valuelines[0].text else "",
                 )
             )
 

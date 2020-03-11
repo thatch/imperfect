@@ -46,4 +46,35 @@ class EditingTest(unittest.TestCase):
         conf.set_value("a", "b", "\n1\n2")
         buf = io.StringIO()
         conf.build(buf)
-        self.assertEqual("[a]\nb = \n  1\n  2\n", buf.getvalue())
+        self.assertEqual("[a]\nb =\n  1\n  2\n", buf.getvalue())
+
+    def test_multiline_value_hanging_edit(self) -> None:
+        conf = parse_string("")
+        conf.set_value("a", "b", "x")
+        conf.set_value("a", "c", "y")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb = x\nc = y\n", buf.getvalue())
+        conf.set_value("a", "b", "\n1\n2")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb =\n  1\n  2\nc = y\n", buf.getvalue())
+
+    def test_set_to_empty_string(self) -> None:
+        conf = parse_string("")
+        conf.set_value("a", "b", "")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb =\n", buf.getvalue())
+
+    def test_set_to_empty_string(self) -> None:
+        conf = parse_string("")
+        conf.set_value("a", "b", "x")
+        conf.set_value("a", "c", "y")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb = x\nc = y\n", buf.getvalue())
+        conf.set_value("a", "b", "")
+        buf = io.StringIO()
+        conf.build(buf)
+        self.assertEqual("[a]\nb =\nc = y\n", buf.getvalue())

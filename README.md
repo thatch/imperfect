@@ -35,9 +35,7 @@ with open("setup.cfg") as f:
 conf: imperfect.ConfigFile = imperfect.parse_string(data)
 conf.set_value("metadata", "long_description_content_type", "text/markdown")
 
-buf = io.StringIO()
-conf.build(buf)
-print(buf.getvalue())
+print(conf.text)
 ```
 
 What if you want to have control over the odering, and want it right after
@@ -76,19 +74,12 @@ for i, entry in enumerate(metadata_section.entries):
         metadata_section.entries.insert(i+1, new_entry)
         break
 
-buf = io.StringIO()
-conf.build(buf)
-
-print(
-    ''.join(
-        difflib.unified_diff(
-            data.splitlines(True),
-            buf.getvalue().splitlines(True),
-        )
-    )
-)
+print(moreorless.unified_diff(data, conf.text, "config.cfg", end=""))
 with open("setup.cfg", "w") as f:
-    f.write(buf.getvalue())
+    f.write(conf.text)
+# or
+with open("setup.cfg", "w") as f:
+    conf.build(f)
 ```
 
 

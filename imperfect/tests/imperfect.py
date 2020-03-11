@@ -1,5 +1,4 @@
 import configparser
-import io
 import itertools
 import unittest
 from typing import List, Optional
@@ -95,9 +94,7 @@ class ImperfectTests(unittest.TestCase):
     )
     def test_simple_roundtrips(self, example: str) -> None:
         conf = imperfect.parse_string(example)
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual(buf.getvalue(), example)
+        self.assertEqual(example, conf.text)
 
     def test_exhaustive_roundtrip(self) -> None:
         for example in variations("sect", "a", "1"):
@@ -128,9 +125,7 @@ class ImperfectTests(unittest.TestCase):
                             print("  ", v)
                 raise
 
-            buf = io.StringIO()
-            conf.build(buf)
-            self.assertEqual(buf.getvalue(), example)
+            self.assertEqual(example, conf.text)
 
     def test_example_from_readme(self) -> None:
         INPUT = """
@@ -154,9 +149,8 @@ long_description_content_type =  text/markdown
 [options]
 packages = imperfect
 """
-        import io
-        import difflib
         import imperfect
+        import moreorless
 
         data = INPUT
 
@@ -186,14 +180,8 @@ packages = imperfect
                 metadata_section.entries.insert(i + 1, new_entry)
                 break
 
-        buf = io.StringIO()
-        conf.build(buf)
+        self.assertEqual(EXPECTED, conf.text)
 
-        self.assertEqual(EXPECTED, buf.getvalue())
-
-        temp = "".join(
-            difflib.unified_diff(
-                data.splitlines(True), buf.getvalue().splitlines(True),
-            )
-        )
+        temp = moreorless.unified_diff(data, conf.text, "setup.cfg")
+        # print(temp, end="")
         self.assertTrue(temp)

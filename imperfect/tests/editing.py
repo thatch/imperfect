@@ -1,4 +1,3 @@
-import io
 import unittest
 
 from .. import parse_string
@@ -9,72 +8,52 @@ class EditingTest(unittest.TestCase):
         # Space around the '=' is not changed when you change the value
         conf = parse_string("[a]\n#comment1\nb = 1\n#comment2\n")
         conf.set_value("a", "b", "2")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\n#comment1\nb = 2\n#comment2\n", buf.getvalue())
+        self.assertEqual("[a]\n#comment1\nb = 2\n#comment2\n", conf.text)
 
     def test_existing_section_change_entry(self) -> None:
         conf = parse_string("[a]\n#comment1\nb=1\n#comment2\n")
         conf.set_value("a", "b", "2")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\n#comment1\nb=2\n#comment2\n", buf.getvalue())
+        self.assertEqual("[a]\n#comment1\nb=2\n#comment2\n", conf.text)
 
     def test_existing_section_new_entry(self) -> None:
         conf = parse_string("[a]\nb = 1\n")
         conf.set_value("a", "c", "2")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb = 1\nc = 2\n", buf.getvalue())
+        self.assertEqual("[a]\nb = 1\nc = 2\n", conf.text)
 
     def test_new_section_new_entry(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "1")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb = 1\n", buf.getvalue())
+        self.assertEqual("[a]\nb = 1\n", conf.text)
 
     def test_multiline_value(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "1\n2")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb = 1\n  2\n", buf.getvalue())
+        self.assertEqual("[a]\nb = 1\n  2\n", conf.text)
 
     def test_multiline_value_hanging(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "\n1\n2")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb =\n  1\n  2\n", buf.getvalue())
+        self.assertEqual("[a]\nb =\n  1\n  2\n", conf.text)
 
     def test_multiline_value_hanging_edit(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "x")
         conf.set_value("a", "c", "y")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb = x\nc = y\n", buf.getvalue())
+        self.assertEqual("[a]\nb = x\nc = y\n", conf.text)
         conf.set_value("a", "b", "\n1\n2")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb =\n  1\n  2\nc = y\n", buf.getvalue())
+        self.assertEqual("[a]\nb =\n  1\n  2\nc = y\n", conf.text)
 
     def test_set_to_empty_string(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb =\n", buf.getvalue())
+        self.assertEqual("[a]\nb =\n", conf.text)
 
-    def test_set_to_empty_string(self) -> None:
+    def test_set_to_empty_string_edit(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "x")
         conf.set_value("a", "c", "y")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb = x\nc = y\n", buf.getvalue())
+        self.assertEqual("[a]\nb = x\nc = y\n", conf.text)
         conf.set_value("a", "b", "")
-        buf = io.StringIO()
-        conf.build(buf)
-        self.assertEqual("[a]\nb =\nc = y\n", buf.getvalue())
+        self.assertEqual("[a]\nb =\nc = y\n", conf.text)
+        conf.set_value("a", "b", "2")
+        self.assertEqual("[a]\nb = 2\nc = y\n", conf.text)

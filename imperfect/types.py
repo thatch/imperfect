@@ -1,5 +1,6 @@
+import io
 from dataclasses import dataclass, field
-from typing import Any, List
+from typing import List, TextIO
 
 
 class ParseError(Exception):
@@ -29,12 +30,17 @@ class ConfigFile:
         except KeyError:
             return False
 
-    # TODO file-like type
-    def build(self, buf: Any) -> None:
+    def build(self, buf: TextIO) -> None:
         buf.write(self.initial_comment)
         for s in self.sections:
             s.build(buf)
         buf.write(self.final_comment)
+
+    @property
+    def text(self) -> str:
+        buf = io.StringIO()
+        self.build(buf)
+        return buf.getvalue()
 
     def set_value(self, section: str, key: str, value: str) -> None:
         try:
@@ -62,8 +68,7 @@ class ConfigSection:
     newline: str
     entries: List["ConfigEntry"] = field(default_factory=list)
 
-    # TODO file-like type
-    def build(self, buf: Any) -> None:
+    def build(self, buf: TextIO) -> None:
         buf.write(
             self.leading_whitespace
             + self.leading_square_bracket
@@ -149,8 +154,7 @@ class ConfigEntry:
             ]
         )
 
-    # TODO
-    def build(self, buf: Any) -> None:
+    def build(self, buf: TextIO) -> None:
         buf.write(
             self.whitespace_before_key
             + self.key
@@ -170,8 +174,7 @@ class ValueLine:
     whitespace_after_text: str
     newline: str
 
-    # TODO
-    def build(self, buf: Any) -> None:
+    def build(self, buf: TextIO) -> None:
         buf.write(
             self.whitespace_before_text
             + self.text

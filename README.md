@@ -26,7 +26,6 @@ and you'd like to make an edit setting `long_description_content_type` in
 `[metadata]` but don't care where it goes.  Default is at the end.
 
 ```py
-import difflib
 import imperfect
 import io
 with open("setup.cfg") as f:
@@ -42,7 +41,7 @@ What if you want to have control over the odering, and want it right after
 `long_description`?  Now with diffing and more internals...
 
 ```py
-import difflib
+import moreorless
 import imperfect
 import io
 with open("setup.cfg") as f:

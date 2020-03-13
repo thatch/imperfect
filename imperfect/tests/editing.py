@@ -57,3 +57,17 @@ class EditingTest(unittest.TestCase):
         self.assertEqual("[a]\nb =\nc = y\n", conf.text)
         conf.set_value("a", "b", "2")
         self.assertEqual("[a]\nb = 2\nc = y\n", conf.text)
+
+    def test_del_section(self) -> None:
+        conf = parse_string("[a]\na=1\n[b]\nb=2\n")
+        del conf["a"]
+        self.assertEqual("[b]\nb=2\n", conf.text)
+        with self.assertRaises(KeyError):
+            del conf["c"]
+
+    def test_del_value(self) -> None:
+        conf = parse_string("[a]\na=1\naa=2\n[b]\nb=2\n")
+        del conf["a"]["aa"]
+        self.assertEqual("[a]\na=1\n[b]\nb=2\n", conf.text)
+        with self.assertRaises(KeyError):
+            del conf["a"]["z"]

@@ -17,6 +17,7 @@ class ConfigFile:
     def keys(self) -> List[str]:
         return [s.name for s in self.sections]
 
+    # Note: these are currently case-sensitive, but keys are not
     def __getitem__(self, name: str) -> "ConfigSection":
         for s in self.sections:
             if s.name == name:
@@ -29,6 +30,13 @@ class ConfigFile:
             return True
         except KeyError:
             return False
+
+    def __delitem__(self, name: str) -> None:
+        for i, s in enumerate(self.sections):
+            if s.name == name:
+                del self.sections[i]
+                return
+        raise KeyError(f"Missing section {name}")
 
     def build(self, buf: TextIO) -> None:
         buf.write(self.initial_comment)
@@ -95,6 +103,13 @@ class ConfigSection:
             return True
         except KeyError:
             return False
+
+    def __delitem__(self, name: str) -> None:
+        for i, e in enumerate(self.entries):
+            if e.key.lower() == name.lower():
+                del self.entries[i]
+                return
+        raise KeyError(name)
 
     def set_value(self, key: str, value: str) -> None:
         valuelines = [

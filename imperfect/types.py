@@ -120,7 +120,7 @@ class ConfigSection:
                 whitespace_before_text="  " if i > 0 else "",
                 whitespace_after_text="",
             )
-            for i, line in enumerate(value.splitlines(False) or [""])
+            for i, line in enumerate(value.splitlines(False) if value else [""])
         ]
 
         for e in self.entries:

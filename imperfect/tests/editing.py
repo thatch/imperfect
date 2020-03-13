@@ -25,6 +25,11 @@ class EditingTest(unittest.TestCase):
         conf.set_value("a", "b", "1")
         self.assertEqual("[a]\nb = 1\n", conf.text)
 
+    def test_empty_value(self) -> None:
+        conf = parse_string("")
+        conf.set_value("a", "b", "")
+        self.assertEqual("[a]\nb =\n", conf.text)
+
     def test_multiline_value(self) -> None:
         conf = parse_string("")
         conf.set_value("a", "b", "1\n2")

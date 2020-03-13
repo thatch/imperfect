@@ -17,26 +17,26 @@ class ConfigFile:
     def keys(self) -> List[str]:
         return [s.name for s in self.sections]
 
-    # Note: these are currently case-sensitive, but keys are not
-    def __getitem__(self, name: str) -> "ConfigSection":
-        for s in self.sections:
-            if s.name == name:
-                return s
+    def index(self, name: str, case_sensitive: bool = False) -> int:
+        for i, s in enumerate(self.sections):
+            if (case_sensitive and s.name == name) or (
+                not case_sensitive and s.name.lower() == name.lower()
+            ):
+                return i
         raise KeyError(f"Missing section {name}")
+
+    def __getitem__(self, name: str) -> "ConfigSection":
+        return self.sections[self.index(name)]
 
     def __contains__(self, name: str) -> bool:
         try:
-            self[name]
+            self.index(name)
             return True
         except KeyError:
             return False
 
     def __delitem__(self, name: str) -> None:
-        for i, s in enumerate(self.sections):
-            if s.name == name:
-                del self.sections[i]
-                return
-        raise KeyError(f"Missing section {name}")
+        del self.sections[self.index(name)]
 
     def build(self, buf: TextIO) -> None:
         buf.write(self.initial_comment)
@@ -91,25 +91,26 @@ class ConfigSection:
     def keys(self) -> List[str]:
         return [e.key.lower() for e in self.entries]
 
-    def __getitem__(self, name: str) -> str:
-        for e in self.entries:
-            if e.key.lower() == name.lower():
-                return e.interpret_value()
+    def index(self, name: str, case_sensitive: bool = False) -> int:
+        for i, e in enumerate(self.entries):
+            if (case_sensitive and e.key == name) or (
+                not case_sensitive and e.key.lower() == name.lower()
+            ):
+                return i
         raise KeyError(name)
+
+    def __getitem__(self, name: str) -> str:
+        return self.entries[self.index(name)].interpret_value()
 
     def __contains__(self, name: str) -> bool:
         try:
-            self[name]
+            self.index(name)
             return True
         except KeyError:
             return False
 
     def __delitem__(self, name: str) -> None:
-        for i, e in enumerate(self.entries):
-            if e.key.lower() == name.lower():
-                del self.entries[i]
-                return
-        raise KeyError(name)
+        del self.entries[self.index(name)]
 
     def set_value(self, key: str, value: str) -> None:
         valuelines = [

@@ -23,7 +23,7 @@ packages = imperfect
 ```
 
 and you'd like to make an edit setting `long_description_content_type` in
-`[metadata]` but don't care where it goes.  Default is at the end.
+`[metadata]` but don't care where it goes.  Default is at the end of the section.
 
 ```py
 import imperfect
@@ -37,7 +37,7 @@ conf.set_value("metadata", "long_description_content_type", "text/markdown")
 print(conf.text)
 ```
 
-What if you want to have control over the odering, and want it right after
+What if you want to have control over the odering, and want it right before
 `long_description`?  Now with diffing and more internals...
 
 ```py
@@ -63,17 +63,19 @@ value = imperfect.ValueLine(
 )
 new_entry = imperfect.ConfigEntry(
     key="long_description_content_type",
-    equals="=",
-    value = [value],
     whitespace_before_equals=" ",
+    equals="=",
     whitespace_before_value="  ",
+    value = [value],
 )
-for i, entry in enumerate(metadata_section.entries):
-    if entry.key == "long_description":
-        metadata_section.entries.insert(i+1, new_entry)
-        break
+try:
+    pos = metadata_section.index("long_description")
+except KeyError:
+    pos = len(metadata_section.entries)
 
-print(moreorless.unified_diff(data, conf.text, "config.cfg", end=""))
+metadata_section.entries.insert(pos, new_entry)
+
+print(moreorless.unified_diff(data, conf.text, "config.cfg"), end="")
 with open("setup.cfg", "w") as f:
     f.write(conf.text)
 # or

@@ -3,9 +3,8 @@ import itertools
 import unittest
 from typing import List, Optional
 
-from parameterized import parameterized
-
 import imperfect
+from parameterized import parameterized
 
 SAMPLES = [
     "[s]\nb=1",

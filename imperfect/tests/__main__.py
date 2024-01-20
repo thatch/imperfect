@@ -1,6 +1,4 @@
 import unittest
 
-from .editing import EditingTest  # noqa: F401
-from .imperfect import ImperfectTests  # noqa: F401
-
-unittest.main()
+if __name__ == "__main__":
+    unittest.main(module="imperfect.tests", verbosity=2)

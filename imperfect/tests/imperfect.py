@@ -3,14 +3,16 @@ import itertools
 import unittest
 from typing import List, Optional
 
-import imperfect
 from parameterized import parameterized
+
+import imperfect
 
 SAMPLES = [
     "[s]\nb=1",
     "[s]\nb=1\nc=2",
     "[s]\nb=1\n\n",
 ]
+
 
 # This is for future adaptation to hypothesis, perhaps
 def variations(section: Optional[str], k: str, v: str) -> List[str]:
@@ -37,7 +39,12 @@ class ImperfectTests(unittest.TestCase):
     # the hypothesis-based tests that validate behavior on many invented
     # examples.
     @parameterized.expand(  # type: ignore
-        [("[s]\na=1",), ("[s]\na = 1",), ("[s]\na = 1\n",), ("[s]\na=\n  1",),],
+        [
+            ("[s]\na=1",),
+            ("[s]\na = 1",),
+            ("[s]\na = 1\n",),
+            ("[s]\na=\n  1",),
+        ],
     )
     def test_simple_parse(self, example: str) -> None:
         conf = imperfect.parse_string(example)
@@ -53,7 +60,11 @@ class ImperfectTests(unittest.TestCase):
 
         self.assertIn(conf["s"]["a"], ("1", "\n1"))
 
-    @parameterized.expand([("a=1",),],)  # type: ignore
+    @parameterized.expand(
+        [
+            ("a=1",),
+        ],
+    )  # type: ignore
     def test_fail_to_parse(self, example: str) -> None:
         with self.assertRaises(imperfect.ParseError):
             imperfect.parse_string(example)
@@ -148,8 +159,9 @@ long_description_content_type =  text/markdown
 [options]
 packages = imperfect
 """
-        import imperfect
         import moreorless
+
+        import imperfect
 
         data = INPUT
 

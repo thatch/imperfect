@@ -42,7 +42,6 @@ UNDECIDED = object()
 
 
 class Parser:
-
     # These regexes and comments come directly from configparser.py which is
     # available under the MIT license at https://github.com/jaraco/configparser
     # They are not yet used by the live parser.
@@ -104,7 +103,6 @@ class Parser:
         self._empty_lines_in_values = empty_lines_in_values
 
     def parse_string(self, text: str) -> ConfigFile:
-
         # Note that default_section param isn't included; it doesn't have a name in
         # this tree so it doesn't matter.
 

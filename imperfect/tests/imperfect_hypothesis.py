@@ -4,7 +4,7 @@ from configparser import RawConfigParser
 from typing import Any, Callable, List, Union
 
 import hypothesis.strategies as st
-from hypothesis import HealthCheck, example, given, settings
+from hypothesis import example, given, HealthCheck, settings
 
 from .. import parse_string
 
@@ -84,7 +84,7 @@ def configparser_is_ok_with_it(**kwargs: Any) -> Callable[..., bool]:
 class ImperfectHypothesisTest(unittest.TestCase):
     @given(simple_well_formed_ini().filter(configparser_is_ok_with_it()))
     @example("[a]\nb=1")
-    @settings(max_examples=1000, deadline=10)  # type: ignore
+    @settings(max_examples=1000, deadline=10)
     def atest_parse(self, text: str) -> None:
         print("Validating", repr(text))
         rcp = RawConfigParser(strict=True)
@@ -96,7 +96,8 @@ class ImperfectHypothesisTest(unittest.TestCase):
             if section != "DEFAULT":
                 self.assertIn(section, conf)  # type: ignore
                 self.assertEqual(
-                    conf[section].keys(), list(rcp[section].keys()),
+                    conf[section].keys(),
+                    list(rcp[section].keys()),
                 )
 
     @given(
@@ -104,7 +105,7 @@ class ImperfectHypothesisTest(unittest.TestCase):
             configparser_is_ok_with_it()
         )
     )
-    @settings(  # type: ignore
+    @settings(
         suppress_health_check=[HealthCheck.too_slow], max_examples=200, deadline=3000
     )
     @example(["[\r]", " 0=1"])
@@ -127,7 +128,8 @@ class ImperfectHypothesisTest(unittest.TestCase):
             if section != "DEFAULT":
                 self.assertIn(section, conf)  # type: ignore
                 self.assertEqual(
-                    conf[section].keys(), list(rcp[section].keys()),
+                    conf[section].keys(),
+                    list(rcp[section].keys()),
                 )
 
     # @given(

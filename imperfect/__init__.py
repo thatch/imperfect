@@ -10,6 +10,11 @@ from typing import Any, Optional, Sequence, Tuple
 
 from .types import ConfigEntry, ConfigFile, ConfigSection, ParseError, ValueLine
 
+try:
+    from .version import __version__
+except ImportError:
+    __version__ = "dev"
+
 __all__ = [
     "ConfigFile",
     "ConfigSection",

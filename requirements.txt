@@ -1,3 +1,0 @@
-dataclasses==0.7; python_version<'3.7'
-parameterized==0.7.1
-moreorless==0.3.0

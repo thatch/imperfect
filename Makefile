@@ -28,7 +28,7 @@ lint:
 	python -m ufmt check $(SOURCES)
 	python -m flake8 $(SOURCES)
 	python -m checkdeps --allow-names imperfect imperfect
-	mypy --strict --non-interactive imperfect
+	mypy --strict --install-types --non-interactive imperfect
 
 .PHONY: release
 release:
